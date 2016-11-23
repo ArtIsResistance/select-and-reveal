@@ -1,20 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <title></title>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link href="style.css" rel="stylesheet">
-        <link href="https://cdnjs.cloudflare.com/ajax/libs/hack/0.7.7/hack.css" rel="stylesheet">
-        <script src="main.js" defer></script>
-    </head>
-    <body class="hack">
-        <section>
-            <input type='file' name='img' size='65' id='uploadimage' />
-        </section>
-        <section>
-            <canvas id="canvas" width="600" height="600" style="width:50vh;"></canvas>
-        </section>
-        
-    </body>
+
+<head>
+    <title></title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="style.css" rel="stylesheet">
+    <script src="main.js" defer></script>
+    <style name="style1" type="text/css"></style>
+    <style name="style2" type="text/css"></style>
+</head>
+
+<body>
+    <main class="container">
+        <div class="left">
+            <section class="upload">
+                <label for="file">
+                    <span>Choose a file</span>
+                </label>
+                <input type="file" id="file" />
+            </section>
+            <section class="preview">
+                <canvas id="canvas"></canvas>
+            </section>
+        </div>
+        <div class="rigth">
+            <section class="result">
+                <div id="result"></div>
+            </section>
+        </div>
+    </main>
+</body>
+
 </html>

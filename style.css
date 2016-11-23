@@ -1,7 +1,62 @@
-section {
-    margin-left:auto;
-    margin-right:auto;
-    display: block;
-    width: 70vw;
+body {
+    margin: 0;
+    font-family: "Arial";
+}
+
+.container {
+    display: flex;
+    flex-flow: wrap;
+}
+
+.left {
+    flex: 1 250px;
     text-align: center;
 }
+
+.rigth {
+    flex: 2 500px;
+}
+
+section {
+    margin: 15px;
+    padding: 10px;
+    background: #ccc;
+    text-align: center;
+}
+
+.upload {
+    text-align: center;
+    cursor: default;
+}
+
+.upload input[type=file] {
+    z-index: -1;
+    position: absolute;
+    width: 0;
+    height: 0;
+    opacity: 0;
+    background: transparent;
+    color: transparent;
+}
+
+.upload > label { 
+    cursor: pointer;
+}
+
+.upload > label:hover > span {
+    color: blue;
+}
+
+.preview > canvas {
+    text-align: center;
+    min-width: 300px;
+    width: 30vw;
+}
+
+.result {
+    word-break: break-all;
+    font-family: monospace;
+}
+
+
+

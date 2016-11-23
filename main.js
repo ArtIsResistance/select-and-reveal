@@ -8,7 +8,14 @@ const selection =
     "selection" :
     "-moz-selection"
 fileElem.addEventListener("change", draw, false)
-window.addEventListener("resize", draw)
+
+let timeout;
+window.addEventListener("resize", ()=>{
+    clearTimeout(timeout)
+    timeout = setTimeout(draw, 250)
+})
+
+
 
 function draw() {
     let canvas = ctx.canvas

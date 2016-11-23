@@ -19,7 +19,6 @@ function draw() {
     img.onload = () => {
         let charsPerLine = resultElem.offsetWidth/fontSize    
         let scalingFactor = 2*img.width/charsPerLine
-        console.log(scalingFactor)
 
         canvas.width = img.width/scalingFactor
         canvas.height = img.height/scalingFactor

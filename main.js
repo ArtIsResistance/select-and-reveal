@@ -1,7 +1,12 @@
 const fileElem = document.getElementById("file")
 const resultElem = document.getElementById("result")
 const ctx = document.getElementById('canvas').getContext('2d')
-const fontSize = 8;
+const fontSize = 12
+const spanWidth = () => (fontSize+2)/2
+const selection =
+    navigator.userAgent.indexOf("Firefox") === -1 ?
+    "selection" :
+    "-moz-selection"
 fileElem.addEventListener("change", draw, false)
 window.addEventListener("resize", draw)
 
@@ -17,8 +22,8 @@ function draw() {
     img.src = window.URL.createObjectURL(file)
 
     img.onload = () => {
-        let charsPerLine = resultElem.offsetWidth/fontSize    
-        let scalingFactor = 2*img.width/charsPerLine
+        let charsPerLine = resultElem.offsetWidth/spanWidth()/2 - 2
+        let scalingFactor = img.width/charsPerLine
 
         canvas.width = img.width/scalingFactor
         canvas.height = img.height/scalingFactor
@@ -35,10 +40,6 @@ function draw() {
 }
 
 function paintText() {
-    let pseudoSelector =
-        (navigator.userAgent.indexOf("Firefox")===-1) ?
-        "selection" :
-        "-moz-selection"
     let data = ctx.getImageData(
         0, 0, ctx.canvas.width, ctx.canvas.height
         ).data
@@ -50,9 +51,10 @@ function paintText() {
         let color = (slice[0] << 16 | slice[1] << 8 | slice[2])
             .toString(16)
         color = ("000000"+color).substring(color.length)
-        css += `._${i}::${pseudoSelector}{background:#${color}}`
+        css += `._${i}{color:#${color}}`
+        css += `._${i}::${selection}{background:#${color}}`
     }
-    document.head.children["style2"].innerHTML = css 
+    document.getElementsByName("style2")[0].innerHTML = css 
 }
 
 function generateString(length) {
@@ -82,11 +84,10 @@ function createText() {
     resultElem.innerHTML = html
 }
 
-function setSpanWidth(value) {
-    document.head.children["style1"].innerHTML = `.result span {
-        display:inline-block;
-        font-size: ${fontSize}px
-        word-break:normal;
-        width:${value}px;
-    }`
+function setSpanWidth(fontSize, width) {
+    document.getElementsByName("style1")[0].innerHTML = `.result span {
+        font-size:${fontSize}px;
+        width:${ width || spanWidth() }px;
+    }
+    `
 }

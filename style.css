@@ -58,5 +58,8 @@ section {
     font-family: monospace;
 }
 
-
+.result span {
+    display: inline-block;
+    word-break: normal;
+}
 

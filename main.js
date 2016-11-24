@@ -1,12 +1,17 @@
+const drawingContext = document.getElementById('canvas').getContext('2d')
 const fileElem = document.getElementById("file")
 const resultElem = document.getElementById("result")
-const ctx = document.getElementById('canvas').getContext('2d')
+const containerStyle = document.getElementsByName("container")[0]
+const lettersStyle = document.getElementsByName("letters")[0]
+
 const fontSize = 12
 const spanWidth = () => (fontSize+2)/2
 const selection =
     navigator.userAgent.indexOf("Firefox") === -1 ?
     "selection" :
     "-moz-selection"
+
+
 fileElem.addEventListener("change", draw, false)
 
 let timeout;
@@ -16,7 +21,7 @@ window.addEventListener("resize", ()=>{
 })
 
 function draw() {
-    let canvas = ctx.canvas
+    let canvas = drawingContext.canvas
     let file = fileElem.files[0]
 
 
@@ -35,48 +40,61 @@ function draw() {
         canvas.width = img.width/scalingFactor
         canvas.height = img.height/scalingFactor
 
-        createText()
-        applyResultGridStyle(fontSize)
-        
-        canvas.getContext('2d')
-            .drawImage(img, 0, 0, canvas.width, canvas.height)
+        drawingContext.drawImage(img, 0, 0, canvas.width, canvas.height)
+        let data = drawingContext.getImageData(0, 0, canvas.width, canvas.height).data
 
-        paintText()
+        let map = createColorMap(data)
+
+        resultElem.innerHTML = resultHTML(canvas.width, canvas.height)
+        containerStyle.innerHTML = resultCSS(fontSize)
+        lettersStyle.innerHTML = lettersCSS(data)
+
         window.URL.revokeObjectURL(img.src) 
     }
 }
 
-function paintText() {
-    let data = ctx.getImageData(
-        0, 0, ctx.canvas.width, ctx.canvas.height
-        ).data
+function createColorMap(pixArray) {
+    const map = new Map()
+    const length = pixArray.length/4
+    let colorIndex = 0
+    for (let i=0;i<length;i++) {
+        let r = pixArray[i*4]
+        let b = pixArray[i*4+1]
+        let g = pixArray[i*4+2]
+        map.set(rgbToHex(r,g,b), colorIndex++)
+    }
+    return map
+}
 
+function lettersCSS(pixArray) {
     let css = ""
-    let length = data.length/4
+    let length = pixArray.length/4
     for (let i=0; i<length; i++) {
-        let slice = data.slice(i*4, i*4+3)
-        let color = (slice[0] << 16 | slice[1] << 8 | slice[2])
-            .toString(16)
-        color = ("000000"+color).substring(color.length)
+        let slice = pixArray.slice(i*4, i*4+3)
+        let color = rgbToHex(slice[0], slice[1], slice[2])
         css += `._${i}{color:#${color}}`
         css += `._${i}::${selection}{background:#${color}}`
     }
-    document.getElementsByName("style2")[0].innerHTML = css 
+    return css 
 }
 
-function generateString(length) {
-    const s = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+function rgbToHex(r,g,b) {
+    let color = (r<<16|g<<8|b).toString(16)
+    return ("000000"+color).substring(color.length)
+}
+
+
+function randomString(length) {
+    const s = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
     return Array(length)
         .join().split(',')
         .map(()=>s.charAt(
             Math.floor(Math.random() * s.length)))
-        .join('');
+        .join('')
 }
 
-function createText() {
-    let w = ctx.canvas.width
-    let h = ctx.canvas.height
-    let string = generateString(2*w*h)
+function resultHTML(w, h) {
+    let string = randomString(2*w*h)
     let html = ""
     for (let y=0; y<h; y++){
         for (let x=0; x<w; x++){
@@ -88,16 +106,13 @@ function createText() {
         }
         html += "<br/>"
     }
-    resultElem.innerHTML = html
+    return html
 }
 
-function applyResultGridStyle(fontSize, width) {
-    document.getElementsByName("style1")[0].innerHTML = `.result span {
+function resultCSS(fontSize, width) {
+    return `.result span {
         font-size:${fontSize}px;
         width:${ width || spanWidth() }px;
     }
-    .result {
-        line-height: ${fontSize}px;
-    }
-    `
+    .result{line-height: ${fontSize}px;}`
 }

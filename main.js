@@ -71,11 +71,16 @@ function createColorMap(length, colorAt) {
 
 function lettersCSS(length, map, colorAt) {
     let css = ""
+    let set = new Set()
     for (let i=0; i<length; i++) {
-        let color = colorAt(i)
+        let color = colorAt(i)        
+        if (set.has(color)){
+            continue
+        }      
         let colorIndex = map.get(color)
         css += `._${colorIndex}{color:#${color}}`
         css += `._${colorIndex}::${selection}{background:#${color}}`
+        set.add(color)
     }
     return css 
 }

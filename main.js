@@ -15,8 +15,6 @@ window.addEventListener("resize", ()=>{
     timeout = setTimeout(draw, 250)
 })
 
-
-
 function draw() {
     let canvas = ctx.canvas
     let file = fileElem.files[0]
@@ -29,20 +27,22 @@ function draw() {
     img.src = window.URL.createObjectURL(file)
 
     img.onload = () => {
-        let charsPerLine = resultElem.offsetWidth/spanWidth()/2 - 2
-        let scalingFactor = img.width/charsPerLine
+        const nonOverflowFactor = 0.98
+        let pixelWidth = 2*spanWidth()
+        let pixelsPerLine = nonOverflowFactor * resultElem.offsetWidth/pixelWidth
+        let scalingFactor = img.width/pixelsPerLine
 
         canvas.width = img.width/scalingFactor
         canvas.height = img.height/scalingFactor
 
         createText()
-        setSpanWidth(fontSize)
+        applyResultGridStyle(fontSize)
         
         canvas.getContext('2d')
             .drawImage(img, 0, 0, canvas.width, canvas.height)
 
         paintText()
-        window.URL.revokeObjectURL(img.src)
+        window.URL.revokeObjectURL(img.src) 
     }
 }
 
@@ -91,10 +91,13 @@ function createText() {
     resultElem.innerHTML = html
 }
 
-function setSpanWidth(fontSize, width) {
+function applyResultGridStyle(fontSize, width) {
     document.getElementsByName("style1")[0].innerHTML = `.result span {
         font-size:${fontSize}px;
         width:${ width || spanWidth() }px;
+    }
+    .result {
+        line-height: ${fontSize}px;
     }
     `
 }

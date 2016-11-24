@@ -39,7 +39,7 @@ section {
     color: transparent;
 }
 
-.upload > label { 
+.upload > label {
     cursor: pointer;
 }
 
@@ -54,6 +54,7 @@ section {
 }
 
 .result {
+    height: 100%;
     word-break: break-all;
     font-family: monospace;
 }

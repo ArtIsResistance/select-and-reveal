@@ -20,6 +20,7 @@ window.addEventListener("resize", ()=>{
     timeout = setTimeout(draw, 250)
 })
 
+
 function draw() {
     let canvas = drawingContext.canvas
     let file = fileElem.files[0]
@@ -41,13 +42,14 @@ function draw() {
         canvas.height = img.height/scalingFactor
 
         drawingContext.drawImage(img, 0, 0, canvas.width, canvas.height)
-        let data = drawingContext.getImageData(0, 0, canvas.width, canvas.height).data
+        let pixArr = drawingContext.getImageData(0, 0, canvas.width, canvas.height).data
+        let pixCount = pixArr.length/4
 
-        let map = createColorMap(data)
+        let map = createColorMap(pixArr)
 
-        resultElem.innerHTML = resultHTML(canvas.width, canvas.height)
+        resultElem.innerHTML = resultHTML(canvas.width, canvas.height, pixArr, map)
         containerStyle.innerHTML = resultCSS(fontSize)
-        lettersStyle.innerHTML = lettersCSS(data)
+        lettersStyle.innerHTML = lettersCSS(pixArr, map)
 
         window.URL.revokeObjectURL(img.src) 
     }
@@ -58,22 +60,25 @@ function createColorMap(pixArray) {
     const length = pixArray.length/4
     let colorIndex = 0
     for (let i=0;i<length;i++) {
-        let r = pixArray[i*4]
-        let b = pixArray[i*4+1]
-        let g = pixArray[i*4+2]
+        let r = pixArray[i*4+0]
+        let g = pixArray[i*4+1]
+        let b = pixArray[i*4+2]
         map.set(rgbToHex(r,g,b), colorIndex++)
     }
     return map
 }
 
-function lettersCSS(pixArray) {
+function lettersCSS(pixArray, map) {
     let css = ""
     let length = pixArray.length/4
     for (let i=0; i<length; i++) {
-        let slice = pixArray.slice(i*4, i*4+3)
-        let color = rgbToHex(slice[0], slice[1], slice[2])
-        css += `._${i}{color:#${color}}`
-        css += `._${i}::${selection}{background:#${color}}`
+        let r = pixArray[i*4+0]
+        let g = pixArray[i*4+1]
+        let b = pixArray[i*4+2]
+        let color = rgbToHex(r, g, b)
+        let colorIndex = map.get(color)
+        css += `._${colorIndex}{color:#${color}}`
+        css += `._${colorIndex}::${selection}{background:#${color}}`
     }
     return css 
 }
@@ -82,7 +87,6 @@ function rgbToHex(r,g,b) {
     let color = (r<<16|g<<8|b).toString(16)
     return ("000000"+color).substring(color.length)
 }
-
 
 function randomString(length) {
     const s = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -93,16 +97,23 @@ function randomString(length) {
         .join('')
 }
 
-function resultHTML(w, h) {
+function resultHTML(w, h, pixArray, map) {
     let string = randomString(2*w*h)
     let html = ""
     for (let y=0; y<h; y++){
         for (let x=0; x<w; x++){
             let coord = y*w+x
+
+            let r = pixArray[coord*4+0]
+            let g = pixArray[coord*4+1]
+            let b = pixArray[coord*4+2]
+            let color = rgbToHex(r, g, b)
+            let colorIndex = map.get(color)
+
             let val = string[coord]
-            html += `<span class='_${coord}'>${val}</span>`
+            html += `<span class='_${colorIndex}'>${val}</span>`
             val = string[coord+1]
-            html += `<span class='_${coord}'>${val}</span>`
+            html += `<span class='_${colorIndex}'>${val}</span>`
         }
         html += "<br/>"
     }

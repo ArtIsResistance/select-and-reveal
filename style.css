@@ -55,8 +55,8 @@ section {
 
 .result {
     height: 100%;
-    word-break: break-all;
     font-family: monospace;
+    letter-spacing: 1px;
 }
 
 .result span {

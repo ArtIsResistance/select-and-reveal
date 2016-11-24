@@ -1,4 +1,4 @@
-const drawingContext = document.getElementById('canvas').getContext('2d')
+const canvas = document.getElementById('canvas')
 const fileElem = document.getElementById("file")
 const resultElem = document.getElementById("result")
 const containerStyle = document.getElementsByName("container")[0]
@@ -21,16 +21,19 @@ window.addEventListener("resize", ()=>{
 })
 
 
-function draw() {
-    let canvas = drawingContext.canvas
-    let file = fileElem.files[0]
 
+
+function draw() {
+    containerStyle.innerHTML = resultCSS(fontSize)
+
+    let file = fileElem.files[0]
 
     if (!file)
         return
 
     let img = new Image()
     img.src = window.URL.createObjectURL(file)
+    
 
     img.onload = () => {
         const nonOverflowFactor = 0.98
@@ -41,51 +44,40 @@ function draw() {
         canvas.width = img.width/scalingFactor
         canvas.height = img.height/scalingFactor
 
-        drawingContext.drawImage(img, 0, 0, canvas.width, canvas.height)
-        let pixArr = drawingContext.getImageData(0, 0, canvas.width, canvas.height).data
-        let pixCount = pixArr.length/4
+        canvas.getContext('2d')
+            .drawImage(img, 0, 0, canvas.width, canvas.height)
 
-        let map = createColorMap(pixArr)
+        const totalPixels = canvas.height*canvas.width
+        const colorAt = createColorExtractor(canvas)
 
-        resultElem.innerHTML = resultHTML(canvas.width, canvas.height, pixArr, map)
-        containerStyle.innerHTML = resultCSS(fontSize)
-        lettersStyle.innerHTML = lettersCSS(pixArr, map)
+        const map = createColorMap(totalPixels, colorAt)
+
+        resultElem.innerHTML = lettersHTML(canvas.width, canvas.height, map, colorAt)
+        lettersStyle.innerHTML = lettersCSS(totalPixels, map, colorAt)
 
         window.URL.revokeObjectURL(img.src) 
     }
 }
 
-function createColorMap(pixArray) {
+function createColorMap(length, colorAt) {
     const map = new Map()
-    const length = pixArray.length/4
     let colorIndex = 0
     for (let i=0;i<length;i++) {
-        let r = pixArray[i*4+0]
-        let g = pixArray[i*4+1]
-        let b = pixArray[i*4+2]
-        map.set(rgbToHex(r,g,b), colorIndex++)
+        let color = colorAt(i)
+        map.set(color, colorIndex++)
     }
     return map
 }
 
-function lettersCSS(pixArray, map) {
+function lettersCSS(length, map, colorAt) {
     let css = ""
-    let length = pixArray.length/4
     for (let i=0; i<length; i++) {
-        let r = pixArray[i*4+0]
-        let g = pixArray[i*4+1]
-        let b = pixArray[i*4+2]
-        let color = rgbToHex(r, g, b)
+        let color = colorAt(i)
         let colorIndex = map.get(color)
         css += `._${colorIndex}{color:#${color}}`
         css += `._${colorIndex}::${selection}{background:#${color}}`
     }
     return css 
-}
-
-function rgbToHex(r,g,b) {
-    let color = (r<<16|g<<8|b).toString(16)
-    return ("000000"+color).substring(color.length)
 }
 
 function randomString(length) {
@@ -97,23 +89,15 @@ function randomString(length) {
         .join('')
 }
 
-function resultHTML(w, h, pixArray, map) {
-    let string = randomString(2*w*h)
+function lettersHTML(w, h, map, colorAt) {
+    let str = randomString(2*w*h)
     let html = ""
     for (let y=0; y<h; y++){
         for (let x=0; x<w; x++){
-            let coord = y*w+x
-
-            let r = pixArray[coord*4+0]
-            let g = pixArray[coord*4+1]
-            let b = pixArray[coord*4+2]
-            let color = rgbToHex(r, g, b)
-            let colorIndex = map.get(color)
-
-            let val = string[coord]
-            html += `<span class='_${colorIndex}'>${val}</span>`
-            val = string[coord+1]
-            html += `<span class='_${colorIndex}'>${val}</span>`
+            let i = y*w+x
+            let colorIndex = map.get(colorAt(i))
+            html += `<span class='_${colorIndex}'>${str[i+0]}</span>`
+            html += `<span class='_${colorIndex}'>${str[i+1]}</span>`
         }
         html += "<br/>"
     }
@@ -126,4 +110,23 @@ function resultCSS(fontSize, width) {
         width:${ width || spanWidth() }px;
     }
     .result{line-height: ${fontSize}px;}`
+}
+
+function createColorExtractor(canvas) {
+    function rgbToHex(r, g, b) {
+        let color = (r<<16|g<<8|b).toString(16)
+        return ("000000"+color).substring(color.length)
+    }
+
+    let pixArray = canvas.getContext("2d")
+        .getImageData(0, 0, canvas.width, canvas.height)
+        .data
+
+    return function(x,y){
+        let n = typeof y === "undefined" ? x : y*canvas.width+x
+        let r = pixArray[n*4+0]
+        let g = pixArray[n*4+1]
+        let b = pixArray[n*4+2]
+        return rgbToHex(r, g, b)
+    }
 }
